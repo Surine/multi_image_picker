@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
@@ -74,8 +75,7 @@ class Asset {
   ///
   /// Once you don't need this thumb data it is a good practice to release it,
   /// by calling releaseThumb() method.
-  Future<ByteData> getThumbByteData(int width, int height,
-      {int quality = 100}) async {
+  Future<ByteData> getThumbByteData(int width, int height, {int quality = 100}) async {
     assert(width != null);
     assert(height != null);
 
@@ -88,21 +88,17 @@ class Asset {
     }
 
     if (quality < 0 || quality > 100) {
-      throw new ArgumentError.value(
-          quality, 'quality should be in range 0-100');
+      throw new ArgumentError.value(quality, 'quality should be in range 0-100');
     }
 
     Completer completer = new Completer<ByteData>();
-    ServicesBinding.instance.defaultBinaryMessenger
-        .setMessageHandler(_thumbChannel, (ByteData message) async {
+    ServicesBinding.instance.defaultBinaryMessenger.setMessageHandler(_thumbChannel, (ByteData message) async {
       completer.complete(message);
-      ServicesBinding.instance.defaultBinaryMessenger
-          .setMessageHandler(_thumbChannel, null);
+      ServicesBinding.instance.defaultBinaryMessenger.setMessageHandler(_thumbChannel, null);
       return message;
     });
 
-    await MultiImagePicker.requestThumbnail(
-        _identifier, width, height, quality);
+    await MultiImagePicker.requestThumbnail(_identifier, width, height, quality);
     return completer.future;
   }
 
@@ -117,16 +113,13 @@ class Asset {
   /// later again, without need to call this method again.
   Future<ByteData> getByteData({int quality = 100}) async {
     if (quality < 0 || quality > 100) {
-      throw new ArgumentError.value(
-          quality, 'quality should be in range 0-100');
+      throw new ArgumentError.value(quality, 'quality should be in range 0-100');
     }
 
     Completer completer = new Completer<ByteData>();
-    ServicesBinding.instance.defaultBinaryMessenger
-        .setMessageHandler(_originalChannel, (ByteData message) async {
+    ServicesBinding.instance.defaultBinaryMessenger.setMessageHandler(_originalChannel, (ByteData message) async {
       completer.complete(message);
-      ServicesBinding.instance.defaultBinaryMessenger
-          .setMessageHandler(_originalChannel, null);
+      ServicesBinding.instance.defaultBinaryMessenger.setMessageHandler(_originalChannel, null);
       return message;
     });
 
@@ -162,5 +155,11 @@ class Asset {
   )
   Future<Metadata> requestMetadata() {
     return metadata;
+  }
+
+  /// get the selected image file
+  Future<File> getFile(quality) async {
+    String path = await MultiImagePicker.requestFilePath(_identifier, quality);
+    return File(path);
   }
 }

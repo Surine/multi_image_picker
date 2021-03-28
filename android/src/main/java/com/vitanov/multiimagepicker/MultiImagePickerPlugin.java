@@ -63,6 +63,8 @@ public class MultiImagePickerPlugin implements
     private static final String REQUEST_THUMBNAIL = "requestThumbnail";
     private static final String REQUEST_ORIGINAL = "requestOriginal";
     private static final String REQUEST_METADATA = "requestMetadata";
+    //获取File Path
+    public static final String REQUEST_FILE_PATH = "requestFilePath";
     private static final String PICK_IMAGES = "pickImages";
     private static final String MAX_IMAGES = "maxImages";
     private static final String SELECTED_ASSETS = "selectedAssets";
@@ -280,6 +282,16 @@ public class MultiImagePickerPlugin implements
                 GetThumbnailTask task = new GetThumbnailTask(this.activity, this.messenger, identifier, width, height, quality);
                 task.execute();
                 finishWithSuccess();
+            }
+        } else if (REQUEST_FILE_PATH.equals(call.method)){
+            //这里可以获取到文件路径
+            final String identifier = call.argument("identifier");
+            final int quality = (int) call.argument("quality");
+            if (!this.uriExists(identifier)) {
+                finishWithError("ASSET_DOES_NOT_EXIST", "The requested image does not exist.");
+            } else {
+                String filePath = FileDirectory.getPath(context,Uri.parse(identifier));
+                result.success(filePath);
             }
         } else if (REQUEST_METADATA.equals(call.method)) {
             final String identifier = call.argument("identifier");

@@ -241,6 +241,41 @@ public class SwiftMultiImagePickerPlugin: NSObject, FlutterPlugin {
                 self.readPhotosMetadata(result: assets, operationQueue: operationQueue, callback: result)
             }
             break;
+
+        case "requestFilePath":
+            let arguments = call.arguments as! Dictionary<String, AnyObject>
+            let identifier = arguments["identifier"] as! String
+            let quality = arguments["quality"] as! Int
+            let compressionQuality = Float(quality) / Float(100)
+            let manager = PHImageManager.default()
+            let options = PHImageRequestOptions()
+            options.deliveryMode = PHImageRequestOptionsDeliveryMode.highQualityFormat
+            options.isSynchronous = false
+            options.isNetworkAccessAllowed = true
+            options.version = .current
+            let assets: PHFetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
+            if(assets.count > 0){
+                let asset: PHAsset = assets[0];
+                let _: PHImageRequestID = manager.requestImage(
+                    for: asset,
+                    targetSize: PHImageManagerMaximumSize,
+                    contentMode: PHImageContentMode.aspectFill,
+                    options: options,
+                    resultHandler: {
+                        (image: UIImage?, info) in
+                        //沙盒copy
+                        if let img = image{
+                            let data = img.jpegData(compressionQuality: CGFloat(compressionQuality))
+                            if let myData = data{
+                                let path = self.writeFullFileWithAssetId(asset: asset, imageData: myData)
+                                result(path)
+                            }
+                        }
+                })
+            }else{
+                result(FlutterError(code: "ASSET_DOES_NOT_EXIST", message: "The requested image does not exist.", details: nil))
+            }
+            break;
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -294,5 +329,18 @@ public class SwiftMultiImagePickerPlugin: NSObject, FlutterPlugin {
             blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
             alpha: CGFloat(1.0)
         )
+    }
+
+    func writeFullFileWithAssetId(asset:PHAsset,imageData:Data) -> String{
+        let homePath = NSTemporaryDirectory()
+        let manager = FileManager.default
+        do {
+            try manager.createDirectory(atPath: homePath, withIntermediateDirectories: true)
+            let path = "\(homePath)flutter-images/\(asset.localIdentifier).jpg"
+            manager.createFile(atPath: path, contents: imageData)
+            return path
+        } catch{
+            return ""
+        }
     }
 }

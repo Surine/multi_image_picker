@@ -343,4 +343,23 @@ public class SwiftMultiImagePickerPlugin: NSObject, FlutterPlugin {
             return ""
         }
     }
+
+      func writeFullFileWithAssetId(asset:PHAsset,imageData:Data) -> String{
+            let homePath = NSTemporaryDirectory()
+            let manager = FileManager.default
+            do {
+                //拼装沙盒路径
+                let initPath = "\(homePath)flutter-images"
+                //创建文件夹
+                try manager.createDirectory(atPath: initPath, withIntermediateDirectories: true)
+                //编码最后一部分，防止找不到文件夹
+                let str = MD5Utils.getmd5(with: asset.localIdentifier);
+                let path = "\(initPath)/\(str ?? "aurora").jpg"
+                //创建文件
+                manager.createFile(atPath: path, contents: imageData)
+                return path
+            } catch{
+                return ""
+            }
+        }
 }

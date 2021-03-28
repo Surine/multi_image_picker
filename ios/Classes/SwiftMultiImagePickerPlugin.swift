@@ -331,18 +331,6 @@ public class SwiftMultiImagePickerPlugin: NSObject, FlutterPlugin {
         )
     }
 
-    func writeFullFileWithAssetId(asset:PHAsset,imageData:Data) -> String{
-        let homePath = NSTemporaryDirectory()
-        let manager = FileManager.default
-        do {
-            try manager.createDirectory(atPath: homePath, withIntermediateDirectories: true)
-            let path = "\(homePath)flutter-images/\(asset.localIdentifier).jpg"
-            manager.createFile(atPath: path, contents: imageData)
-            return path
-        } catch{
-            return ""
-        }
-    }
 
       func writeFullFileWithAssetId(asset:PHAsset,imageData:Data) -> String{
             let homePath = NSTemporaryDirectory()

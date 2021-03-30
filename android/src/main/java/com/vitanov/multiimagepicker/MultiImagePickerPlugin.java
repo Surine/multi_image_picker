@@ -292,6 +292,7 @@ public class MultiImagePickerPlugin implements
             } else {
                 String filePath = FileDirectory.getPath(context,Uri.parse(identifier));
                 result.success(filePath);
+                clearMethodCallAndResult();
             }
         } else if (REQUEST_METADATA.equals(call.method)) {
             final String identifier = call.argument("identifier");
